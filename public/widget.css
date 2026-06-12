@@ -1,0 +1,155 @@
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+	background: #fff;
+	color: #1a1a1a;
+	padding: 12px;
+}
+
+#widget {
+	max-width: 680px;
+	margin: 0 auto;
+}
+
+.search-bar {
+	display: flex;
+	gap: 6px;
+	margin-bottom: 8px;
+}
+
+#search-input {
+	flex: 1;
+	padding: 8px 12px;
+	border: 1.5px solid #e0e0e0;
+	border-radius: 6px;
+	font-size: 14px;
+	outline: none;
+	transition: border-color 0.15s;
+}
+
+#search-input:focus {
+	border-color: #2383e2;
+}
+
+#search-btn {
+	padding: 8px 14px;
+	background: #2383e2;
+	color: #fff;
+	border: none;
+	border-radius: 6px;
+	cursor: pointer;
+	font-size: 15px;
+	transition: background 0.15s;
+}
+
+#search-btn:hover {
+	background: #1a6bbf;
+}
+
+.db-picker {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 10px;
+	font-size: 13px;
+	color: #555;
+}
+
+#db-select {
+	flex: 1;
+	padding: 5px 8px;
+	border: 1px solid #ddd;
+	border-radius: 5px;
+	font-size: 13px;
+	background: #fff;
+}
+
+#status-msg {
+	font-size: 13px;
+	color: #888;
+	margin-bottom: 6px;
+	min-height: 18px;
+}
+
+#status-msg.error {
+	color: #c0392b;
+}
+
+#results-list {
+	list-style: none;
+}
+
+.result-item {
+	padding: 10px 0;
+	border-bottom: 1px solid #f0f0f0;
+}
+
+.result-item:last-child {
+	border-bottom: none;
+}
+
+.result-title {
+	font-size: 14px;
+	font-weight: 600;
+	color: #1a1a1a;
+	text-decoration: none;
+	display: block;
+}
+
+.result-title:hover {
+	color: #2383e2;
+	text-decoration: underline;
+}
+
+.result-meta {
+	font-size: 12px;
+	color: #aaa;
+	margin-top: 2px;
+}
+
+.result-db-badge {
+	display: inline-block;
+	font-size: 11px;
+	background: #f0f0f0;
+	color: #666;
+	border-radius: 3px;
+	padding: 1px 5px;
+	margin-right: 6px;
+}
+
+.result-meta-item {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	margin-right: 10px;
+}
+
+.result-meta-label {
+	font-size: 11px;
+	background: #e8f0fe;
+	color: #3367d6;
+	border-radius: 3px;
+	padding: 1px 5px;
+}
+
+#load-more {
+	width: 100%;
+	margin-top: 12px;
+	padding: 8px;
+	background: transparent;
+	border: 1.5px solid #ddd;
+	border-radius: 6px;
+	font-size: 13px;
+	color: #555;
+	cursor: pointer;
+	transition: background 0.1s;
+}
+
+#load-more:hover {
+	background: #f7f7f7;
+}

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Notion 検索</title>
+	<link rel="stylesheet" href="/widget.css" />
+</head>
+<body>
+	<div id="widget">
+		<div class="search-bar">
+			<input
+				id="search-input"
+				type="text"
+				placeholder="Notionを検索…"
+				autocomplete="off"
+				autofocus
+			/>
+			<button id="search-btn" aria-label="検索">&#x1F50D;</button>
+		</div>
+
+		<div class="db-picker" id="db-picker" style="display:none">
+			<label for="db-select">検索範囲:</label>
+			<select id="db-select">
+				<option value="">すべてのページ</option>
+			</select>
+		</div>
+
+		<div id="results-area">
+			<div id="status-msg"></div>
+			<ul id="results-list"></ul>
+			<button id="load-more" style="display:none">もっと見る</button>
+		</div>
+	</div>
+	<script src="/widget.js"></script>
+</body>
+</html>
