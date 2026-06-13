@@ -34,9 +34,10 @@ export function addCorsHeaders(res: ServerResponse): void {
 	res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
 	res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 	res.setHeader("X-Content-Type-Options", "nosniff");
+	// frame-ancestors * でNotionなど外部サイトからのiframe埋め込みを許可
 	res.setHeader(
 		"Content-Security-Policy",
-		"default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'",
+		"default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; frame-ancestors *",
 	);
 }
 
