@@ -4,8 +4,9 @@
 	let debounceTimer = null;
 	let nextCursor = null;
 	let currentQuery = "";
-	let currentDateRange = "all";
-	let currentYearRange = "";
+	let currentDateRange = "all"; // 最後に検索した dateRange パラメータ
+	let selectedRange = "all";    // UIで選択中の範囲種別 ("all" / "past6months" / "year")
+	let searchGen = 0;            // 古いレスポンスを破棄するためのカウンター
 
 	const input = document.getElementById("search-input");
 	const btn = document.getElementById("search-btn");
@@ -42,10 +43,17 @@
 	}
 
 	function getDateRangeParam() {
-		if (currentDateRange === "year") {
+		if (selectedRange === "year") {
 			return yearSelect.value || ("year:" + new Date().getFullYear());
 		}
-		return currentDateRange;
+		return selectedRange;
+	}
+
+	function clearResults() {
+		resultsList.innerHTML = "";
+		suggestionsList.innerHTML = "";
+		suggestionsArea.style.display = "none";
+		loadMoreBtn.style.display = "none";
 	}
 
 	function renderItems(list, results) {
@@ -87,28 +95,25 @@
 		const q = input.value.trim();
 		if (!q) {
 			setStatus("", false);
-			resultsList.innerHTML = "";
-			suggestionsList.innerHTML = "";
-			suggestionsArea.style.display = "none";
-			loadMoreBtn.style.display = "none";
+			clearResults();
 			return;
 		}
 
 		const dateRange = getDateRangeParam();
+		const isNewSearch = !append || q !== currentQuery || dateRange !== currentDateRange;
 
-		if (!append || q !== currentQuery || dateRange !== currentDateRange + currentYearRange) {
+		if (isNewSearch) {
 			nextCursor = null;
 			currentQuery = q;
 			currentDateRange = dateRange;
-			if (!append) {
-				resultsList.innerHTML = "";
-				suggestionsList.innerHTML = "";
-				suggestionsArea.style.display = "none";
-			}
+			clearResults();
 		}
 
+		// このリクエストのジェネレーション番号を記録。
+		// レスポンス受信時に番号が変わっていたら破棄する。
+		const gen = ++searchGen;
+
 		setStatus("検索中…", false);
-		loadMoreBtn.style.display = "none";
 
 		const params = new URLSearchParams({ q: q, dateRange: dateRange });
 		if (nextCursor) params.set("cursor", nextCursor);
@@ -117,17 +122,22 @@
 			const res = await fetch("/api/search?" + params.toString());
 			const data = await res.json();
 
+			// 別の検索が始まっていたら結果を捨てる
+			if (gen !== searchGen) return;
+
 			if (!res.ok) {
 				setStatus("エラー: " + (data.error || "不明なエラー"), true);
 				return;
 			}
 
-			if (!append && data.results.length === 0 && (!data.suggestions || data.suggestions.length === 0)) {
+			const hasSuggestions = data.suggestions && data.suggestions.length > 0;
+
+			if (!append && data.results.length === 0 && !hasSuggestions) {
 				setStatus("結果が見つかりませんでした。", false);
 				return;
 			}
 
-			if (!append && data.results.length === 0 && data.suggestions && data.suggestions.length > 0) {
+			if (!append && data.results.length === 0 && hasSuggestions) {
 				setStatus("この範囲では見つかりませんでした。", false);
 				suggestionsArea.style.display = "block";
 				renderItems(suggestionsList, data.suggestions);
@@ -140,6 +150,7 @@
 			nextCursor = data.nextCursor || null;
 			loadMoreBtn.style.display = data.hasMore ? "block" : "none";
 		} catch (_) {
+			if (gen !== searchGen) return;
 			setStatus("接続エラーが発生しました。再試行してください。", true);
 		}
 	}
@@ -165,18 +176,15 @@
 		b.addEventListener("click", function () {
 			drbButtons.forEach(function (x) { x.classList.remove("active"); });
 			b.classList.add("active");
-			const range = b.dataset.range;
-			currentDateRange = range;
-			if (range === "year") {
-				yearSelect.style.display = "inline-block";
-			} else {
-				yearSelect.style.display = "none";
-			}
+			selectedRange = b.dataset.range;
+			yearSelect.style.display = selectedRange === "year" ? "inline-block" : "none";
+			clearTimeout(debounceTimer);
 			if (input.value.trim()) doSearch(false);
 		});
 	});
 
 	yearSelect.addEventListener("change", function () {
+		clearTimeout(debounceTimer);
 		if (input.value.trim()) doSearch(false);
 	});
 
