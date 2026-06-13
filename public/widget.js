@@ -4,12 +4,15 @@
 	let debounceTimer = null;
 	let nextCursor = null;
 	let currentQuery = "";
-	let currentDateRange = "all"; // 最後に検索した dateRange パラメータ
-	let selectedRange = "all";    // UIで選択中の範囲種別 ("all" / "past6months" / "year")
-	let searchGen = 0;            // 古いレスポンスを破棄するためのカウンター
+	let currentDateRange = "all";
+	let selectedRange = "all";
+	let optionsExpanded = false;
+	let searchGen = 0;
 
 	const input = document.getElementById("search-input");
 	const btn = document.getElementById("search-btn");
+	const optionsToggle = document.getElementById("options-toggle");
+	const dateRangePicker = document.getElementById("date-range-picker");
 	const drbButtons = document.querySelectorAll(".drb");
 	const yearSelect = document.getElementById("year-select");
 	const statusMsg = document.getElementById("status-msg");
@@ -49,6 +52,11 @@
 		return selectedRange;
 	}
 
+	// デフォルト: 1件（最新）、絞り込みON: 10件
+	function getPageSize() {
+		return optionsExpanded ? 10 : 1;
+	}
+
 	function clearResults() {
 		resultsList.innerHTML = "";
 		suggestionsList.innerHTML = "";
@@ -75,7 +83,7 @@
 			if (r.meta && r.meta.length > 0) {
 				metaHtml = r.meta.map(function (m) {
 					return '<span class="result-meta-item"><span class="result-meta-label">' +
-						escHtml(m.label) + '</span>' + escHtml(m.value) + '</span>';
+						escHtml(m.label) + "</span>" + escHtml(m.value) + "</span>";
 				}).join("");
 			} else {
 				metaHtml = "最終更新: " + escHtml(date);
@@ -100,6 +108,7 @@
 		}
 
 		const dateRange = getDateRangeParam();
+		const pageSize = getPageSize();
 		const isNewSearch = !append || q !== currentQuery || dateRange !== currentDateRange;
 
 		if (isNewSearch) {
@@ -109,20 +118,17 @@
 			clearResults();
 		}
 
-		// このリクエストのジェネレーション番号を記録。
-		// レスポンス受信時に番号が変わっていたら破棄する。
 		const gen = ++searchGen;
 
 		setStatus("検索中…", false);
 
-		const params = new URLSearchParams({ q: q, dateRange: dateRange });
+		const params = new URLSearchParams({ q: q, dateRange: dateRange, pageSize: String(pageSize) });
 		if (nextCursor) params.set("cursor", nextCursor);
 
 		try {
 			const res = await fetch("/api/search?" + params.toString());
 			const data = await res.json();
 
-			// 別の検索が始まっていたら結果を捨てる
 			if (gen !== searchGen) return;
 
 			if (!res.ok) {
@@ -148,12 +154,30 @@
 			renderItems(resultsList, data.results);
 
 			nextCursor = data.nextCursor || null;
-			loadMoreBtn.style.display = data.hasMore ? "block" : "none";
+			loadMoreBtn.style.display = (optionsExpanded && data.hasMore) ? "block" : "none";
 		} catch (_) {
 			if (gen !== searchGen) return;
 			setStatus("接続エラーが発生しました。再試行してください。", true);
 		}
 	}
+
+	// 絞り込みトグル
+	optionsToggle.addEventListener("click", function () {
+		optionsExpanded = !optionsExpanded;
+		if (optionsExpanded) {
+			dateRangePicker.style.display = "flex";
+			optionsToggle.innerHTML = "絞り込み &#x25BE;";
+		} else {
+			dateRangePicker.style.display = "none";
+			optionsToggle.innerHTML = "絞り込み &#x25B8;";
+			// 閉じたときは範囲をリセット
+			selectedRange = "all";
+			yearSelect.style.display = "none";
+			drbButtons.forEach(function (x) { x.classList.remove("active"); });
+			document.querySelector(".drb[data-range='all']").classList.add("active");
+		}
+		if (input.value.trim()) doSearch(false);
+	});
 
 	input.addEventListener("input", function () {
 		clearTimeout(debounceTimer);

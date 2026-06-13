@@ -51,12 +51,33 @@ body {
 	background: #1a6bbf;
 }
 
+.options-row {
+	margin-bottom: 4px;
+}
+
+.options-toggle {
+	background: none;
+	border: none;
+	font-size: 12px;
+	color: #aaa;
+	cursor: pointer;
+	padding: 2px 0;
+	transition: color 0.15s;
+}
+
+.options-toggle:hover {
+	color: #2383e2;
+}
+
 .date-range-picker {
 	display: flex;
 	align-items: center;
 	flex-wrap: wrap;
 	gap: 6px;
 	margin-bottom: 10px;
+	padding: 8px 10px;
+	background: #f8f8f8;
+	border-radius: 6px;
 }
 
 .date-range-label {
