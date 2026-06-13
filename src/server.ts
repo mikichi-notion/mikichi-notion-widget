@@ -45,6 +45,32 @@ const server = createServer(async (req, res) => {
 		await handleDatabases(req, res);
 		return;
 	}
+	if (path === "/api/debug") {
+		const { sendJson } = await import("./router.js");
+		const { getNotionClient } = await import("./notion/client.js");
+		const key = process.env.NOTION_API_KEY ?? "";
+		const ids = process.env.NOTION_DB_IDS ?? "";
+		try {
+			const notion = getNotionClient();
+			const me = await notion.users.me({});
+			sendJson(res, 200, {
+				hasApiKey: key.length > 0,
+				apiKeyPrefix: key.slice(0, 10) + "...",
+				hasDbIds: ids.length > 0,
+				dbIds: ids,
+				notionUser: me.name,
+			});
+		} catch (e) {
+			sendJson(res, 200, {
+				hasApiKey: key.length > 0,
+				apiKeyPrefix: key.slice(0, 10) + "...",
+				hasDbIds: ids.length > 0,
+				dbIds: ids,
+				notionError: e instanceof Error ? e.message : String(e),
+			});
+		}
+		return;
+	}
 
 	sendError(res, 404, "Not found");
 });
