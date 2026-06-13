@@ -4,15 +4,18 @@
 	let debounceTimer = null;
 	let nextCursor = null;
 	let currentQuery = "";
-	let currentDbId = "";
+	let currentDateRange = "all";
+	let currentYearRange = "";
 
 	const input = document.getElementById("search-input");
 	const btn = document.getElementById("search-btn");
-	const dbPicker = document.getElementById("db-picker");
-	const dbSelect = document.getElementById("db-select");
+	const drbButtons = document.querySelectorAll(".drb");
+	const yearSelect = document.getElementById("year-select");
 	const statusMsg = document.getElementById("status-msg");
 	const resultsList = document.getElementById("results-list");
 	const loadMoreBtn = document.getElementById("load-more");
+	const suggestionsArea = document.getElementById("suggestions-area");
+	const suggestionsList = document.getElementById("suggestions-list");
 
 	function escHtml(str) {
 		return String(str)
@@ -27,26 +30,25 @@
 		statusMsg.className = isError ? "error" : "";
 	}
 
-	async function loadDatabases() {
-		try {
-			const res = await fetch("/api/databases");
-			if (!res.ok) return;
-			const data = await res.json();
-			if (!data.databases || data.databases.length === 0) return;
-
-			data.databases.forEach(function (db) {
-				const opt = document.createElement("option");
-				opt.value = db.id;
-				opt.textContent = db.title;
-				dbSelect.appendChild(opt);
-			});
-			dbPicker.style.display = "flex";
-		} catch (_) {
-			// DBピッカーはオプション — 失敗しても無視
+	function setupYearSelect() {
+		const currentYear = new Date().getFullYear();
+		yearSelect.innerHTML = "";
+		for (let y = currentYear; y >= 2020; y--) {
+			const opt = document.createElement("option");
+			opt.value = "year:" + y;
+			opt.textContent = y + "年";
+			yearSelect.appendChild(opt);
 		}
 	}
 
-	function renderResults(results) {
+	function getDateRangeParam() {
+		if (currentDateRange === "year") {
+			return yearSelect.value || ("year:" + new Date().getFullYear());
+		}
+		return currentDateRange;
+	}
+
+	function renderItems(list, results) {
 		results.forEach(function (r) {
 			const li = document.createElement("li");
 			li.className = "result-item";
@@ -61,7 +63,6 @@
 				? '<span class="result-db-badge">DB</span>'
 				: "";
 
-			// DB固有のmeta（日付・レベルなど）があればそちらを優先表示
 			let metaHtml;
 			if (r.meta && r.meta.length > 0) {
 				metaHtml = r.meta.map(function (m) {
@@ -78,7 +79,7 @@
 				"</a>" +
 				'<div class="result-meta">' + badge + metaHtml + "</div>";
 
-			resultsList.appendChild(li);
+			list.appendChild(li);
 		});
 	}
 
@@ -87,24 +88,29 @@
 		if (!q) {
 			setStatus("", false);
 			resultsList.innerHTML = "";
+			suggestionsList.innerHTML = "";
+			suggestionsArea.style.display = "none";
 			loadMoreBtn.style.display = "none";
 			return;
 		}
 
-		const dbId = dbSelect.value;
+		const dateRange = getDateRangeParam();
 
-		if (!append || q !== currentQuery || dbId !== currentDbId) {
+		if (!append || q !== currentQuery || dateRange !== currentDateRange + currentYearRange) {
 			nextCursor = null;
 			currentQuery = q;
-			currentDbId = dbId;
-			if (!append) resultsList.innerHTML = "";
+			currentDateRange = dateRange;
+			if (!append) {
+				resultsList.innerHTML = "";
+				suggestionsList.innerHTML = "";
+				suggestionsArea.style.display = "none";
+			}
 		}
 
 		setStatus("検索中…", false);
 		loadMoreBtn.style.display = "none";
 
-		const params = new URLSearchParams({ q: q });
-		if (dbId) params.set("databaseId", dbId);
+		const params = new URLSearchParams({ q: q, dateRange: dateRange });
 		if (nextCursor) params.set("cursor", nextCursor);
 
 		try {
@@ -116,13 +122,20 @@
 				return;
 			}
 
-			if (!append && data.results.length === 0) {
+			if (!append && data.results.length === 0 && (!data.suggestions || data.suggestions.length === 0)) {
 				setStatus("結果が見つかりませんでした。", false);
 				return;
 			}
 
+			if (!append && data.results.length === 0 && data.suggestions && data.suggestions.length > 0) {
+				setStatus("この範囲では見つかりませんでした。", false);
+				suggestionsArea.style.display = "block";
+				renderItems(suggestionsList, data.suggestions);
+				return;
+			}
+
 			setStatus(append ? "" : data.results.length + " 件", false);
-			renderResults(data.results);
+			renderItems(resultsList, data.results);
 
 			nextCursor = data.nextCursor || null;
 			loadMoreBtn.style.display = data.hasMore ? "block" : "none";
@@ -148,11 +161,26 @@
 		doSearch(false);
 	});
 
-	dbSelect.addEventListener("change", function () {
+	drbButtons.forEach(function (b) {
+		b.addEventListener("click", function () {
+			drbButtons.forEach(function (x) { x.classList.remove("active"); });
+			b.classList.add("active");
+			const range = b.dataset.range;
+			currentDateRange = range;
+			if (range === "year") {
+				yearSelect.style.display = "inline-block";
+			} else {
+				yearSelect.style.display = "none";
+			}
+			if (input.value.trim()) doSearch(false);
+		});
+	});
+
+	yearSelect.addEventListener("change", function () {
 		if (input.value.trim()) doSearch(false);
 	});
 
 	loadMoreBtn.addEventListener("click", function () { doSearch(true); });
 
-	loadDatabases();
+	setupYearSelect();
 })();

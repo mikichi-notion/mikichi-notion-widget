@@ -22,6 +22,7 @@ export interface SearchApiResponse {
 	results: SearchResult[];
 	hasMore: boolean;
 	nextCursor: string | null;
+	suggestions?: SearchResult[];
 }
 
 export interface DatabasesApiResponse {
@@ -36,6 +37,7 @@ export interface ApiErrorResponse {
 export interface SearchQueryParams {
 	q: string;
 	databaseId?: string;
+	dateRange?: string;
 	cursor?: string;
 	pageSize?: number;
 }

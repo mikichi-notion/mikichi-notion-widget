@@ -19,17 +19,24 @@
 			<button id="search-btn" aria-label="検索">&#x1F50D;</button>
 		</div>
 
-		<div class="db-picker" id="db-picker" style="display:none">
-			<label for="db-select">検索範囲:</label>
-			<select id="db-select">
-				<option value="">すべてのページ</option>
-			</select>
+		<div class="date-range-picker" id="date-range-picker">
+			<span class="date-range-label">検索範囲:</span>
+			<div class="date-range-buttons">
+				<button class="drb active" data-range="all">すべて</button>
+				<button class="drb" data-range="past6months">過去6ヶ月</button>
+				<button class="drb" data-range="year">年ごと</button>
+			</div>
+			<select id="year-select" style="display:none" aria-label="年を選択"></select>
 		</div>
 
 		<div id="results-area">
 			<div id="status-msg"></div>
 			<ul id="results-list"></ul>
 			<button id="load-more" style="display:none">もっと見る</button>
+			<div id="suggestions-area" style="display:none">
+				<div class="suggestions-header">過去の配信からの提案</div>
+				<ul id="suggestions-list"></ul>
+			</div>
 		</div>
 	</div>
 	<script src="/widget.js"></script>

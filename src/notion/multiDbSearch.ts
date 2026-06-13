@@ -1,7 +1,7 @@
 import { isFullPage } from "@notionhq/client";
 import { getNotionClient } from "./client.js";
 import { extractPageTitle } from "./utils.js";
-import { DB_META_CONFIG, extractMeta } from "./dbConfig.js";
+import { DB_CONFIG, DB_META_CONFIG, extractMeta, buildDateFilterConditions } from "./dbConfig.js";
 import type { SearchResult, SearchApiResponse } from "../types.js";
 
 // cursor は { dbId: string | null } のJSONをbase64エンコードしたもの
@@ -25,6 +25,7 @@ export async function multiDbSearch(
 	query: string,
 	cursorEncoded?: string,
 	pageSize = 10,
+	dateRange = "all",
 ): Promise<SearchApiResponse> {
 	const notion = getNotionClient();
 	const cursors: CursorMap = cursorEncoded ? decodeCursor(cursorEncoded) : {};
@@ -36,11 +37,27 @@ export async function multiDbSearch(
 
 	const queries = activeDbIds.map(async (id) => {
 		const cursor = cursors[id]; // undefined = 初回, string = ページネーション中
+		const normalizedId = id.replace(/-/g, "");
+		const dbConfig = DB_CONFIG[normalizedId];
+
+		const dateConditions = dbConfig?.datePropertyName
+			? buildDateFilterConditions(dbConfig.datePropertyName, dateRange)
+			: [];
+
+		const titleCondition = { property: "title", title: { contains: query } };
+		const allConditions = [titleCondition, ...dateConditions];
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		const filter: any = allConditions.length === 1 ? allConditions[0] : { and: allConditions };
+
+		const sortProperty = dbConfig?.datePropertyName;
+
 		try {
 			const resp = await notion.databases.query({
 				database_id: id,
-				filter: { property: "title", title: { contains: query } },
-				sorts: [{ timestamp: "last_edited_time", direction: "descending" }],
+				filter,
+				sorts: sortProperty
+					? [{ property: sortProperty, direction: "descending" }]
+					: [{ timestamp: "last_edited_time", direction: "descending" }],
 				...(cursor ? { start_cursor: cursor } : {}),
 				page_size: perPage,
 			});

@@ -51,22 +51,54 @@ body {
 	background: #1a6bbf;
 }
 
-.db-picker {
+.date-range-picker {
 	display: flex;
 	align-items: center;
-	gap: 8px;
+	flex-wrap: wrap;
+	gap: 6px;
 	margin-bottom: 10px;
-	font-size: 13px;
-	color: #555;
 }
 
-#db-select {
-	flex: 1;
-	padding: 5px 8px;
-	border: 1px solid #ddd;
-	border-radius: 5px;
+.date-range-label {
 	font-size: 13px;
+	color: #555;
+	white-space: nowrap;
+}
+
+.date-range-buttons {
+	display: flex;
+	gap: 4px;
+}
+
+.drb {
+	padding: 4px 10px;
+	font-size: 12px;
+	border: 1.5px solid #ddd;
+	border-radius: 20px;
 	background: #fff;
+	color: #555;
+	cursor: pointer;
+	transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+
+.drb:hover {
+	border-color: #2383e2;
+	color: #2383e2;
+}
+
+.drb.active {
+	border-color: #2383e2;
+	background: #2383e2;
+	color: #fff;
+}
+
+#year-select {
+	padding: 4px 8px;
+	border: 1.5px solid #ddd;
+	border-radius: 6px;
+	font-size: 12px;
+	background: #fff;
+	color: #333;
 }
 
 #status-msg {
@@ -152,4 +184,26 @@ body {
 
 #load-more:hover {
 	background: #f7f7f7;
+}
+
+#suggestions-area {
+	margin-top: 16px;
+}
+
+.suggestions-header {
+	font-size: 12px;
+	font-weight: 600;
+	color: #999;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	padding: 6px 0 8px;
+	border-top: 1px solid #eee;
+}
+
+#suggestions-list {
+	list-style: none;
+}
+
+#suggestions-list .result-item {
+	opacity: 0.8;
 }

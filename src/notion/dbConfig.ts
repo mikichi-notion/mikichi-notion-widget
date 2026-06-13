@@ -1,10 +1,25 @@
 import type { PageObjectResponse } from "@notionhq/client/build/src/api-endpoints.js";
 import type { MetaItem } from "../types.js";
 
-export const DB_META_CONFIG: Record<string, { label: string; propertyName: string }[]> = {
-	"20cbae8ce6444695a9f47c869bd5439a": [{ label: "日付", propertyName: "日付" }],
-	"139725b15589818abcbcdeb84bce726d": [{ label: "レベル", propertyName: "レベル" }],
+interface DbConfig {
+	meta: { label: string; propertyName: string }[];
+	datePropertyName?: string;
+}
+
+export const DB_CONFIG: Record<string, DbConfig> = {
+	"20cbae8ce6444695a9f47c869bd5439a": {
+		meta: [{ label: "日付", propertyName: "日付" }],
+		datePropertyName: "日付",
+	},
+	"139725b15589818abcbcdeb84bce726d": {
+		meta: [{ label: "レベル", propertyName: "レベル" }],
+	},
 };
+
+// 後方互換のためのエイリアス
+export const DB_META_CONFIG = Object.fromEntries(
+	Object.entries(DB_CONFIG).map(([k, v]) => [k, v.meta]),
+);
 
 export function extractMeta(
 	page: PageObjectResponse,
@@ -30,4 +45,36 @@ export function extractMeta(
 		}
 	}
 	return items;
+}
+
+/**
+ * 日付範囲文字列からNotionフィルター条件の配列を生成する
+ * "all" → []
+ * "past6months" → [{ property, date: { after: ... } }]
+ * "year:2025" → [{ property, date: { on_or_after } }, { property, date: { on_or_before } }]
+ */
+export function buildDateFilterConditions(
+	datePropertyName: string,
+	dateRange: string,
+): object[] {
+	if (!dateRange || dateRange === "all") return [];
+
+	if (dateRange === "past6months") {
+		const d = new Date();
+		d.setMonth(d.getMonth() - 6);
+		const after = d.toISOString().split("T")[0];
+		return [{ property: datePropertyName, date: { after } }];
+	}
+
+	if (dateRange.startsWith("year:")) {
+		const year = parseInt(dateRange.slice(5), 10);
+		if (!isNaN(year)) {
+			return [
+				{ property: datePropertyName, date: { on_or_after: `${year}-01-01` } },
+				{ property: datePropertyName, date: { on_or_before: `${year}-12-31` } },
+			];
+		}
+	}
+
+	return [];
 }
