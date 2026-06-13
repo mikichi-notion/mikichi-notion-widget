@@ -30,8 +30,8 @@ export async function listDatabases(): Promise<DatabasesApiResponse> {
 					if (isFullDatabase(db)) {
 						databases.push({ id: db.id, title: extractDatabaseTitle(db) });
 					}
-				} catch {
-					// Skip inaccessible or invalid DB IDs silently
+				} catch (e) {
+					console.error(`DB fetch error [${id}]:`, e);
 				}
 			}),
 		);
