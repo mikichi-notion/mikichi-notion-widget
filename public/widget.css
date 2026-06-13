@@ -33,12 +33,12 @@ body {
 }
 
 #search-input:focus {
-	border-color: #2383e2;
+	border-color: #FDBE11;
 }
 
 #search-btn {
 	padding: 8px 14px;
-	background: #2383e2;
+	background: #458EC2;
 	color: #fff;
 	border: none;
 	border-radius: 6px;
@@ -48,7 +48,7 @@ body {
 }
 
 #search-btn:hover {
-	background: #1a6bbf;
+	background: #3478aa;
 }
 
 .options-row {
@@ -66,7 +66,7 @@ body {
 }
 
 .options-toggle:hover {
-	color: #2383e2;
+	color: #458EC2;
 }
 
 .date-range-picker {
@@ -103,13 +103,13 @@ body {
 }
 
 .drb:hover {
-	border-color: #2383e2;
-	color: #2383e2;
+	border-color: #458EC2;
+	color: #458EC2;
 }
 
 .drb.active {
-	border-color: #2383e2;
-	background: #2383e2;
+	border-color: #458EC2;
+	background: #458EC2;
 	color: #fff;
 }
 
@@ -184,8 +184,8 @@ body {
 
 .result-meta-label {
 	font-size: 11px;
-	background: #e8f0fe;
-	color: #3367d6;
+	background: #e6f1f8;
+	color: #458EC2;
 	border-radius: 3px;
 	padding: 1px 5px;
 }
